@@ -22,9 +22,6 @@ def softmax_loss_naive(W, X, y, reg):
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
     """
-    # Initialize the loss and gradient to zero.
-    loss = 0.0
-    dW = np.zeros_like(W)
 
     #############################################################################
     # TODO: Compute the softmax loss and its gradient using explicit loops.     #
@@ -34,10 +31,33 @@ def softmax_loss_naive(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Initialize the loss and gradient to zero.
+    loss = 0.0
+    dW = np.zeros_like(W)
+
+    # Get the number of training examples
+    batch_size = X.shape[0]
+    num_classes = W.shape[1]
+
+    # Loop through each training example
+    for i in range(batch_size):
+        scores = X[i].dot(W.T)
+        scores -= np.max(scores)
+        softmax_probs = np.exp(scores) / (np.sum(np.exp(scores)) + 1e-8)
+        loss += -np.log(softmax_probs[y[i]] + 1e-8)
+
+        # gradient calculation
+        for j in range(num_classes):
+            if j == y[i]:
+                dW[:, j] += (softmax_probs[j] - 1) * X[i]
+            else:
+                dW[:, j] += softmax_probs[j] * X[i]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+    loss /= batch_size
+    loss += 0.5 * reg * np.sum(W * W)
+    dW /= batch_size
+    dW = reg * dW
     return loss, dW
 
 
@@ -58,9 +78,29 @@ def softmax_loss_vectorized(W, X, y, reg):
     # regularization!                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+    batch_size = X.shape[0]
 
-    pass
+    scores = X.dot(W.T)
+    scores -= np.max(scores, axis=1, keepdims=True)
+    softmax_probs = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+
+    # Compute loss
+    correct_class_probs = softmax_probs[np.arange(batch_size), y]
+    loss = -np.sum(np.log(correct_class_probs + 1e-8)) / batch_size
+    loss += 0.5 * reg * np.sum(W * W)
+
+    # Compute gradient
+    softmax_probs[np.arange(batch_size), y] -= 1
+    dW = reg * X.T.dot(softmax_probs) / batch_size
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
     return loss, dW
+
+
+if __name__ == "__main__":
+    W = np.array([[.5, .5], [.5, .5]])
+    X = np.array([[-99.0, 9999.0], [-9.0, 9999.0]])
+    y = np.array([1, 1])
+    reg = 0.1
+    print(softmax_loss_naive(W, X, y, reg))
+    print(softmax_loss_vectorized(W, X, y, reg))
