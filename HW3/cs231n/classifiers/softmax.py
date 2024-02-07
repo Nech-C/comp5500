@@ -38,10 +38,13 @@ def softmax_loss_naive(W, X, y, reg):
     # Get the number of training examples
     batch_size = X.shape[0]
     num_classes = W.shape[1]
-
+    # print(f"X.shape: {X.shape}, W.shape: {W.shape}, y.shape: {y.shape}")
     # Loop through each training example
     for i in range(batch_size):
-        scores = X[i].dot(W.T)
+        # print(f"X[{i}]: {X[i]}, W: {W}")
+        # print(f"X[{i}].shape: {X[i].shape}, W.T.shape: {W.T.shape}")
+        scores = X[i].dot(W)
+        # print(f"Scores: {scores}")
         scores -= np.max(scores)
         softmax_probs = np.exp(scores) / (np.sum(np.exp(scores)) + 1e-8)
         loss += -np.log(softmax_probs[y[i]] + 1e-8)
@@ -55,9 +58,9 @@ def softmax_loss_naive(W, X, y, reg):
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     loss /= batch_size
-    loss += 0.5 * reg * np.sum(W * W)
+    loss += reg * np.sum(W * W)
     dW /= batch_size
-    dW = reg * dW
+    dW = dW + 2 * reg * W
     return loss, dW
 
 
@@ -80,26 +83,27 @@ def softmax_loss_vectorized(W, X, y, reg):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     batch_size = X.shape[0]
 
-    scores = X.dot(W.T)
+    scores = X.dot(W)
     scores -= np.max(scores, axis=1, keepdims=True)
     softmax_probs = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
 
     # Compute loss
     correct_class_probs = softmax_probs[np.arange(batch_size), y]
     loss = -np.sum(np.log(correct_class_probs + 1e-8)) / batch_size
-    loss += 0.5 * reg * np.sum(W * W)
+    loss += reg * np.sum(W * W)
 
     # Compute gradient
     softmax_probs[np.arange(batch_size), y] -= 1
-    dW = reg * X.T.dot(softmax_probs) / batch_size
+    dW = X.T.dot(softmax_probs) / batch_size
+    dW = dW + 2 * reg * W
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss, dW
 
 
 if __name__ == "__main__":
-    W = np.array([[.5, .5], [.5, .5]])
-    X = np.array([[-99.0, 9999.0], [-9.0, 9999.0]])
+    X = np.array([[.2, .2, 0.2], [.1, .1, 0.1]])
+    W = np.array([[-9.0, 9.0], [-9.0, 9.0], [-1, 2]])
     y = np.array([1, 1])
     reg = 0.1
     print(softmax_loss_naive(W, X, y, reg))
