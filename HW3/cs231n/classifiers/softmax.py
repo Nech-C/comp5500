@@ -58,7 +58,6 @@ def softmax_loss_naive(W, X, y, reg):
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     loss /= batch_size
-    loss += reg * np.sum(W * W)
     dW /= batch_size
     dW = dW + 2 * reg * W
     return loss, dW
@@ -89,8 +88,8 @@ def softmax_loss_vectorized(W, X, y, reg):
 
     # Compute loss
     correct_class_probs = softmax_probs[np.arange(batch_size), y]
-    loss = -np.sum(np.log(correct_class_probs + 1e-8)) / batch_size
-    loss += reg * np.sum(W * W)
+    loss = -np.sum(np.log(correct_class_probs)) / batch_size
+
 
     # Compute gradient
     softmax_probs[np.arange(batch_size), y] -= 1
