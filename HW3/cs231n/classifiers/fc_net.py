@@ -23,12 +23,12 @@ class TwoLayerNet(object):
     """
 
     def __init__(
-        self,
-        input_dim=3 * 32 * 32,
-        hidden_dim=100,
-        num_classes=10,
-        weight_scale=1e-3,
-        reg=0.0,
+            self,
+            input_dim=3 * 32 * 32,
+            hidden_dim=100,
+            num_classes=10,
+            weight_scale=1e-3,
+            reg=0.0,
     ):
         """
         Initialize a new network.
@@ -55,7 +55,13 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        W1 = np.random.normal(0, weight_scale, (input_dim, hidden_dim))
+        b1 = np.zeros(hidden_dim)
+        W2 = np.random.normal(0, weight_scale, (hidden_dim, num_classes))
+        b2 = np.zeros(num_classes)
+        print(f"---------init----------:\nW1: {W1.shape}, b1: {b1.shape}, W2: {W2.shape}, b2: {b2.shape}")
+
+        self.params = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -88,7 +94,11 @@ class TwoLayerNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        x1, x1_cache = affine_forward(X, self.params['W1'], self.params['b1'])
+        x1_relu, x1_relu_cache = relu_forward(x1)
+
+        x2, x2_cache = affine_forward(x1_relu, self.params['W2'], self.params['b2'])
+        scores = x2
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -111,8 +121,28 @@ class TwoLayerNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        if self.reg > 0:
+            print("reg > 0")
+        loss, dx2 = softmax_loss(x2, y)
 
-        pass
+        grads['W2'] = x1_relu.T.dot(dx2)
+        grads['W2'] = grads['W2'] + self.reg * self.params['W2']
+        # print(grads['W2'].shape)
+        # print(self.params['W2'].shape)
+
+        grads['b2'] = np.sum(dx2, axis=0)
+        dx1_relu = dx2.dot(self.params['W2'].T)
+        dx1 = relu_backward(dx1_relu, x1_relu_cache)
+        X_flatten = X.reshape(X.shape[0], -1)
+        grads['W1'] = X_flatten.T.dot(dx1)
+        # print(grads['W1'].shape)
+        # print(self.params['W1'].shape)
+        grads['W1'] = grads['W1'] + self.reg * self.params['W1']
+
+        grads['b1'] = np.sum(dx1, axis=0)
+
+        loss += 0.5 * self.reg * (np.sum(self.params['W1'] ** 2)
+                                  + np.sum(self.params['W2'] ** 2))
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
