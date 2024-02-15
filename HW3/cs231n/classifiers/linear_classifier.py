@@ -115,7 +115,6 @@ class LinearClassifier(object):
 
         scores = X.dot(self.W)
         y_pred = np.argmax(scores, axis=1)
-        return y_pred
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return y_pred

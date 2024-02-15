@@ -26,13 +26,13 @@ def affine_forward(x, w, b):
     # will need to reshape the input into rows.                               #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    x_flattened = x.reshape(x.shape[0], -1)
+    x_flattened = x.reshape(x.shape[0], -1) # (N, D)
+
     try:
         out = x_flattened @ w + b
-    except ValueError:
+    except ValueError as e:
         print(x_flattened.shape, w.shape, b.shape)
-        raise ValueError
-    # out = x @ w + b
+        raise ValueError from e
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -64,12 +64,12 @@ def affine_backward(dout, cache):
     # TODO: Implement the affine backward pass.                               #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    x_reshaped = x.reshape(x.shape[0], -1)
+    x_reshaped = x.reshape(x.shape[0], -1) # (N, D)
 
     db = np.sum(dout, axis=0)
     dw = x_reshaped.T @ dout
     dx = dout @ w.T
-    dx = dx.reshape(x.shape)
+    dx = dx.reshape(x.shape) # (N, d1, ..., d_k)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -183,25 +183,23 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    shifted_logits = x - np.max(x, axis=1, keepdims=True)
-    Z = np.sum(np.exp(shifted_logits), axis=1, keepdims=True)
-    log_probs = shifted_logits - np.log(Z)
-    probs = np.exp(log_probs)
-    N = x.shape[0]
-    loss = -np.sum(log_probs[np.arange(N), y]) / N
-    dx = probs.copy()
-    dx[np.arange(N), y] -= 1
-    dx /= N
+    # Compute scores
+    scores = x - np.max(x, axis=1, keepdims=True)
+    scores_sum = np.sum(np.exp(scores), axis=1, keepdims=True)
+
+    # Compute softmax probabilities
+    log_probs = scores - np.log(scores_sum)
+    softmax_probs = np.exp(log_probs)
+
+    # Compute loss
+    num_batches = x.shape[0]
+    loss = -np.sum(log_probs[np.arange(num_batches), y]) / num_batches
+    dx = softmax_probs.copy()
+    dx[np.arange(num_batches), y] -= 1
+    dx /= num_batches
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
     return loss, dx
-
-
-if __name__ == "__main__":
-    x = np.array([[1, 2, 3], [4, 5, 6]])
-    w = np.array([[1, 2], [3, 4], [5, 6]])
-    b = np.array([1, 2])
-    print(affine_forward(x, w, b))

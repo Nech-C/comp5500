@@ -41,10 +41,7 @@ def softmax_loss_naive(W, X, y, reg):
     # print(f"X.shape: {X.shape}, W.shape: {W.shape}, y.shape: {y.shape}")
     # Loop through each training example
     for i in range(batch_size):
-        # print(f"X[{i}]: {X[i]}, W: {W}")
-        # print(f"X[{i}].shape: {X[i].shape}, W.T.shape: {W.T.shape}")
         scores = X[i].dot(W)
-        # print(f"Scores: {scores}")
         scores -= np.max(scores)
         softmax_probs = np.exp(scores) / (np.sum(np.exp(scores)) + 1e-8)
         loss += -np.log(softmax_probs[y[i]] + 1e-8)
@@ -55,11 +52,11 @@ def softmax_loss_naive(W, X, y, reg):
                 dW[:, j] += (softmax_probs[j] - 1) * X[i]
             else:
                 dW[:, j] += softmax_probs[j] * X[i]
-
-    # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     loss /= batch_size
     dW /= batch_size
     dW = dW + 2 * reg * W
+    # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+
     return loss, dW
 
 
@@ -84,7 +81,7 @@ def softmax_loss_vectorized(W, X, y, reg):
 
     scores = X.dot(W)
     scores -= np.max(scores, axis=1, keepdims=True)
-    softmax_probs = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+    softmax_probs = np.exp(scores) / (np.sum(np.exp(scores), axis=1, keepdims=True) + 1e-8)
 
     # Compute loss
     correct_class_probs = softmax_probs[np.arange(batch_size), y]
@@ -98,12 +95,3 @@ def softmax_loss_vectorized(W, X, y, reg):
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     return loss, dW
-
-
-if __name__ == "__main__":
-    X = np.array([[.2, .2, 0.2], [.1, .1, 0.1]])
-    W = np.array([[-9.0, 9.0], [-9.0, 9.0], [-1, 2]])
-    y = np.array([1, 1])
-    reg = 0.1
-    print(softmax_loss_naive(W, X, y, reg))
-    print(softmax_loss_vectorized(W, X, y, reg))
