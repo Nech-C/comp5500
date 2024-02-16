@@ -71,7 +71,10 @@ def preprocess_text(text, tokenizer):
     # but during inference, the batch size will always be one.
     # Our implementation is 4 lines
     # YOUR CODE STARTS
-  
+    ids = tokenizer.encode(text).ids
+    ids = torch.LongTensor(ids)
+    count_vec = data_utils.convert_text_ids_to_count_vector(ids, tokenizer.get_vocab_size())
+    count_vec = count_vec.unsqueeze_(0)
     # YOUR CODE ENDS
 
     return count_vec
@@ -95,8 +98,16 @@ def main(args):
     # 4. turn on model test mode to switch batch norm to the evaluation mode
     # Our implementation is 8 lines
     # YOUR CODE STARTS
-
-
+    model = FcnBinaryClassifier(
+        input_size=train_args["input_size"],
+        hidden_size=train_args["hidden_size"],
+        dropout_prob=0,
+        use_batch_norm=train_args["use_batch_norm"]
+    )
+    model_dir = os.path.join(train_args["model_dir"], "model_checkpoint.pt")
+    state_dict = torch.load(model_dir)
+    model.load_state_dict(state_dict)
+    model.eval()
     # YOUR CODE ENDS
     logger.info("This model is trained to classify movie reviews into positive and negative,"
                 "to interact with it just write a text that is similar to a movie review and press ENTER."
