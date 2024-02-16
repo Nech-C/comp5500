@@ -100,7 +100,8 @@ def main(args):
     # if cuda is not available, set device to "cpu"
     # Our implementation is 2 lines
     # YOUR CODE STARTS
-
+    if device is None:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
     # YOUR CODE ENDS
 
     _device_description = "CPU" if device == "cpu" else "GPU"
@@ -142,7 +143,7 @@ def main(args):
     # and provide learning rate and weight decay parameters to it
     # Our implementation is 1 line
     # YOUR CODE STARTS
-
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     # YOUR CODE ENDS
 
     # Initialize current best accuracy as 0 for early stopping
@@ -171,7 +172,13 @@ def main(args):
             # 5. Update the parameters
             # Our implementation is 7 lines
             # YOUR CODE STARTS
-
+            x = x.to(device)
+            y = y.to(device)
+            probs = model(x)
+            loss = F.binary_cross_entropy(probs, y)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
             # YOUR CODE ENDS
 
             wandb.log(
@@ -185,8 +192,8 @@ def main(args):
         # Use utils.evaluate_model to get it and wandb.log to log it as "test_acc"
         # Our implementation is 2 lines
         # YOUR CODE STARTS
-
-
+        test_acc = utils.evaluate_model(model, test_dataloader, device)
+        wandb.log({"test_acc": test_acc})
         # YOUR CODE ENDS
 
         # TASK 2.4: if output_dir is provided and test accuracy is better than the current best accuracy
@@ -199,7 +206,16 @@ def main(args):
         # Before that use the logger.info to indicate that the training stopped early.
         # Our implementation is 12 lines
         # YOUR CODE STARTS
-            
+        if test_acc > best_acc:
+            best_acc = test_acc
+            epochs_without_improvement = 0
+            if args.output_dir is not None:
+                torch.save(model.state_dict(), os.path.join(args.output_dir, "model_checkpoint.pt"))
+        else:
+            epochs_without_improvement += 1
+            if epochs_without_improvement > args.early_stopping:
+                logger.info("Early stopping")
+                break
         # YOUR CODE ENDS
 
     # Log the best accuracy as a summary so that wandb would use it instead of the final value
