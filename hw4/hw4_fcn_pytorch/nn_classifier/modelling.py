@@ -68,8 +68,7 @@ class FcnBinaryClassifier(nn.Module):
         # YOUR CODE STARTS
         self.input_layer = nn.Linear(input_size, hidden_size)
         self.use_batch_norm = use_batch_norm
-        if use_batch_norm:
-            self.batch_norm = nn.BatchNorm1d(hidden_size)
+        self.batch_norm = nn.BatchNorm1d(hidden_size) if use_batch_norm else None
         self.dropout = nn.Dropout(p=dropout_prob)
         self.ouput_layer = nn.Linear(hidden_size, 1)
         # YOUR CODE ENDS
@@ -89,7 +88,7 @@ class FcnBinaryClassifier(nn.Module):
         # 4. Apply sigmoid to get probabilities after output_layer
         # YOUR CODE STARTS
         x = torch.relu(self.input_layer(x))
-        if self.use_batch_norm:
+        if self.batch_norm is not None:
             x = self.batch_norm(x)
         x = self.dropout(x)
         x = self.ouput_layer(x)
