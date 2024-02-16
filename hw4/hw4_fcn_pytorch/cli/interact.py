@@ -99,12 +99,12 @@ def main(args):
     # Our implementation is 8 lines
     # YOUR CODE STARTS
     model = FcnBinaryClassifier(
-        input_size=train_args["input_size"],
+        input_size=tokenizer.get_vocab_size(),
         hidden_size=train_args["hidden_size"],
         dropout_prob=0,
         use_batch_norm=train_args["use_batch_norm"]
     )
-    model_dir = os.path.join(train_args["model_dir"], "model_checkpoint.pt")
+    model_dir = os.path.join(args.model_dir, "model_checkpoint.pt")
     state_dict = torch.load(model_dir)
     model.load_state_dict(state_dict)
     model.eval()
