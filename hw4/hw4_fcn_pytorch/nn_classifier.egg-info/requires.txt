@@ -1,0 +1,7 @@
+datasets
+pytest
+torch
+tokenizers
+tqdm
+toml
+wandb

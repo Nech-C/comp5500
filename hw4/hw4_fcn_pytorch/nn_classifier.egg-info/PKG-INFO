@@ -1,0 +1,11 @@
+Metadata-Version: 2.1
+Name: nn-classifier
+Version: 1.0
+License-File: LICENSE
+Requires-Dist: datasets
+Requires-Dist: pytest
+Requires-Dist: torch
+Requires-Dist: tokenizers
+Requires-Dist: tqdm
+Requires-Dist: toml
+Requires-Dist: wandb
