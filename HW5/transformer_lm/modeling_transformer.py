@@ -31,8 +31,17 @@ class TransformerEncoderLayer(nn.Module):
         # (5 layers in total, including dropout)
         # We recommend to use nn.Sequential for FFN instead of creating is layer-by-layer,
         # it will make your code more readable
-        # YOUR CODE STARTS HERE  (our implementation is about 5-8 lines)    
-
+        # YOUR CODE STARTS HERE  (our implementation is about 5-8 lines)
+        self.attention = MultiHeadSelfAttention(hidden, hidden, num_heads,
+                                                causal, dropout)
+        self.fcn = nn.Sequential(
+            nn.Linear(hidden, fcn_hidden),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(fcn_hidden, hidden)
+        )
+        self.norm1 = nn.LayerNorm(hidden)
+        self.norm2 = nn.LayerNorm(hidden)
         # YOUR CODE ENDS HERE
 
     def forward(self, x):
@@ -52,7 +61,15 @@ class TransformerEncoderLayer(nn.Module):
         # x = some_stuff_that_changes_x(x)
         # x = x + residual
         # YOUR CODE STARTS HERE (our implementation is about 6 lines)
-
+        residual1 = x
+        x = self.attention(x)
+        x = x + residual1
+        x = self.norm1(x)
+        
+        residual2 = x
+        x = self.fcn(x)
+        x = x + residual2
+        
         # YOUR CODE ENDS HERE
         return x
 
@@ -92,7 +109,14 @@ class TransformerEncoder(nn.Module):
         # https://github.com/FrancescoSaverioZuppichini/Pytorch-how-and-when-to-use-Module-Sequential-ModuleList-and-ModuleDict
         # You can use for-loop of python list comprehension to create the list of layers
         # YOUR CODE STARTS HERE (our implementation is about 6 lines)
+        self.embedding = nn. Embedding(vocab_size, hidden)
+        self.pos_emb = nn.Embedding(max_seq_len, hidden)
+        self.logit_proj = nn.Linear(hidden, vocab_size)
+        self.dropout = nn.Dropout(dropout)
 
+        self.encoder_layers = nn.ModuleList(
+            [TransformerEncoderLayer(hidden, num_heads, fcn_hidden, dropout, causal)
+             for _ in range(num_layers)])
         # YOUR CODE ENDS HERE
 
     def _add_positions(self, sequence_tensor):
@@ -114,7 +138,7 @@ class TransformerEncoder(nn.Module):
         # you need to move them to the same device as sequence_tensor
         # You can get device of sequence_tensor with sequence_tensor.device
         # YOUR CODE STARTS HERE (our implementation is about 3 lines)
-
+        
         # YOUR CODE ENDS HERE
 
     def forward(self, input_ids=None):
