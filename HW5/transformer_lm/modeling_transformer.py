@@ -75,7 +75,8 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, num_layers, hidden, num_heads, fcn_hidden, vocab_size, max_seq_len, dropout=0.1, causal=False):
+    def __init__(self, num_layers, hidden, num_heads, fcn_hidden,
+                 vocab_size, max_seq_len, dropout=0.1, causal=False):
         """A minimal implementation of Transformer Encoder
         
         Args:
@@ -109,9 +110,9 @@ class TransformerEncoder(nn.Module):
         # https://github.com/FrancescoSaverioZuppichini/Pytorch-how-and-when-to-use-Module-Sequential-ModuleList-and-ModuleDict
         # You can use for-loop of python list comprehension to create the list of layers
         # YOUR CODE STARTS HERE (our implementation is about 6 lines)
-        self.embedding = nn. Embedding(vocab_size, hidden)
+        self.embedding = nn.Embedding(vocab_size, hidden)
         self.pos_emb = nn.Embedding(max_seq_len, hidden)
-        self.logit_proj = nn.Linear(hidden, vocab_size)
+        self.logit_proj = nn.Linear(hidden, hidden)
         self.dropout = nn.Dropout(dropout)
 
         self.encoder_layers = nn.ModuleList(
@@ -138,7 +139,9 @@ class TransformerEncoder(nn.Module):
         # you need to move them to the same device as sequence_tensor
         # You can get device of sequence_tensor with sequence_tensor.device
         # YOUR CODE STARTS HERE (our implementation is about 3 lines)
-        
+        pos = torch.arange(seq_len, device=sequence_tensor.device)
+        pos_emb = self.pos_emb(pos)
+        return sequence_tensor + pos_emb
         # YOUR CODE ENDS HERE
 
     def forward(self, input_ids=None):
@@ -157,12 +160,17 @@ class TransformerEncoder(nn.Module):
         # 3. Transformer Encoder Layers
         # NOTE: Please write shape of the tensor for each line of code
         # YOUR CODE STARTS HERE (our implementation is about 4 lines)
-
+        x = self._add_positions(self.embedding(input_ids))
+        x = self.dropout(x)
+        for layer in self.encoder_layers:
+            x = layer(x)
+        return self.logit_proj(x)
         # YOUR CODE ENDS HERE
 
 
 class TransformerLM(nn.Module):
-    def __init__(self, num_layers, hidden, num_heads, fcn_hidden, vocab_size, max_seq_len, dropout=0.1):
+    def __init__(self, num_layers, hidden, num_heads, fcn_hidden,
+                 vocab_size, max_seq_len, dropout=0.1):
         """Transformer Language Model"""
         super().__init__()
         self.dropout_rate = dropout
@@ -172,7 +180,10 @@ class TransformerLM(nn.Module):
         # Remember that when we use Transformer for language modeling, it should be **causal** or it will cheat.
         # Output layer should predict the logits for all words in the vocabulary (size of logits = vocab_size)
         # YOUR CODE STARTS HERE (our implementation is about 2 lines)
-
+        self.encoder = TransformerEncoder(num_layers, hidden, num_heads, fcn_hidden,
+                                          vocab_size, max_seq_len, dropout, causal=True)
+        self.drop_out = nn.Dropout(dropout)
+        self.output_layer = nn.Linear(hidden, vocab_size)
         # YOUR CODE ENDS HERE
     
     def forward(self, input_ids):
@@ -190,7 +201,9 @@ class TransformerLM(nn.Module):
         # 2. Dropout
         # 3. Output Layer to produce logits over the classes (our vocabulary in case of language modeling)
         # YOUR CODE STARTS HERE (our implementation is 2 lines)
-
+        x = self.encoder(input_ids)
+        x = self.drop_out(x)
+        return self.output_layer(x)
         # YOUR CODE ENDS HERE
 
     def save_pretrained(self, save_path):
