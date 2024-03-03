@@ -6,3 +6,20 @@ HW3.zip
 *.pyc
 
 HW4-20240215T235543Z-001.zip
+HW5/test.ipynb
+HW5/2
+HW5 - part1/
+HW5-20240225T211814Z-001.zip
+HW5 - part1.zip
+hw4/hw4_fcn_pytorch/hw4_submission/LICENSE
+hw4/hw4_fcn_pytorch/hw4_submission/setup.py
+hw4/hw4_fcn_pytorch/hw4_submission/cli/interact.py
+hw4/hw4_fcn_pytorch/hw4_submission/cli/train.py
+hw4/hw4_fcn_pytorch/hw4_submission/nn_classifier/__init__.py
+hw4/hw4_fcn_pytorch/hw4_submission/nn_classifier/data_utils.py
+hw4/hw4_fcn_pytorch/hw4_submission/nn_classifier/modelling.py
+hw4/hw4_fcn_pytorch/hw4_submission/nn_classifier/utils.py
+hw4/hw4_fcn_pytorch/hw4_submission/tests/test_data_utils.py
+hw4/hw4_fcn_pytorch/hw4_submission/tests/test_modelling.py
+hw4/hw4_fcn_pytorch/hw4_submission/tests/test_utils.py
+HW5/notebooks/tiny_shakespeare.txt
