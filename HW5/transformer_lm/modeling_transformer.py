@@ -185,7 +185,7 @@ class TransformerLM(nn.Module):
         self.drop_out = nn.Dropout(dropout)
         self.output_layer = nn.Linear(hidden, vocab_size)
         # YOUR CODE ENDS HERE
-    
+
     def forward(self, input_ids):
         """
         Args:
@@ -223,11 +223,11 @@ class TransformerLM(nn.Module):
         }
 
         with open(os.path.join(save_path, "model_config.json"), "w") as f:
-           json.dump(config, f)
+            json.dump(config, f)
 
         state_dict = self.state_dict()
         torch.save(state_dict, os.path.join(save_path, "model.pt"))
-    
+
     @classmethod
     def from_pretrained(cls, save_path):
         """Load the model weights from a directory
@@ -237,7 +237,7 @@ class TransformerLM(nn.Module):
         """
         with open(os.path.join(save_path, "model_config.json"), "r") as f:
             config = json.load(f)
-        
+
         model = cls(**config)
         state_dict = torch.load(os.path.join(save_path, "model.pt"), map_location=torch.device("cpu"))
         model.load_state_dict(state_dict)
