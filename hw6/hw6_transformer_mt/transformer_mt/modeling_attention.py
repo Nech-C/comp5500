@@ -63,7 +63,8 @@ class MultiHeadAttention(nn.Module):
         # Define k, q, v using self.k, self.q and self.v based on if the target exists or not 
         # Note : Please write shape of each tensor for each line of code
         ## YOUR CODE STARTS HERE## ~ 2 lines code
-
+        k, v = (self.k(q), self.v(q)) if kv is None else (self.k(kv), self.v(kv))
+        q = self.q(q)
 
         # YOUR CODE ENDS HERE
 
@@ -87,8 +88,13 @@ class MultiHeadAttention(nn.Module):
             # in this case, remember to reshape them back
             # Our implementation is 3 lines
             # YOUR CODE STARTS HERE
-            
-            
+            key_padding_mask_bool = key_padding_mask.to(torch.bool)
+            mask = key_padding_mask_bool.unsqueeze(1).repeat(1, self.num_heads, 1)
+            print(f"mask shape: {mask.shape}, mask: {mask}")
+            mask = mask.reshape(bs * self.num_heads, 1, attended_seq)
+            print(f"mask shape: {mask.shape}, scores shape: {scores.shape}")
+            print(f"mask: {mask}, key_padding_mask: {key_padding_mask}")
+            scores = scores.masked_fill(mask, float("-inf"))
             # YOUR CODE ENDS HERE
 
         assert scores.size() == (bs * self.num_heads, attending_seq, attended_seq),\
