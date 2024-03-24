@@ -80,11 +80,21 @@ class TransformerDecoderLayer(nn.Module):
         # 3. Create self.att_layer_norm, self.cross_att_layer_norm, and self.fcn_layer_norm layers using LayerNorm
         # 4. Create self.fcn network using nn.Sequential, nn.ReLU and nn.Linear
         # 5. Create self.dropout layer using nn.Dropout
-        # YOUR CODE STARTS HERE  (our implementation is about 5-8 lines) 
+        # YOUR CODE STARTS HERE  (our implementation is about 5-8 lines)
+        self.self_attention = MultiHeadAttention(hidden, hidden, num_heads, causal=True)
+        self.corss_attention = MultiHeadAttention(hidden, hidden, num_heads, causal=False)
+        self.att_layer_norm =  nn.LayerNorm(hidden)
+        self.cross_att_layer_norm = nn.LayerNorm(hidden)
+        self.fcn_layer_norm = nn.LayerNorm(hidden)
 
-       
-        # YOUR CODE ENDS HERE 
-    
+        self.fcn = nn.Sequential(
+            nn.Linear(hidden, fcn_hidden),
+            nn.ReLU(),
+            nn.Linear(fcn_hidden, hidden)
+        )
+        self.dropout = nn.Dropout(dropout)
+        # YOUR CODE ENDS HERE
+
     def forward(self, decoder_hidden_states, encoder_hidden_states, key_padding_mask=None):
         """Transformer Decoder Layer
 
@@ -112,8 +122,31 @@ class TransformerDecoderLayer(nn.Module):
         # 10. LayerNorm
         # Note : Please write shape of the tensor for each line of code
         # YOUR CODE STARTS HERE (our implementation is about 10 lines)
+        residual = decoder_hidden_states  # [batch_size, query_seq_len, hidden]
+        x = self.self_attention(decoder_hidden_states) # [batch_size, query_seq_len, hidden]
+        x = self.att_layer_norm(x + residual)
+        # [batch_size, query_seq_len, hidden] +
+        # [batch_size, query_seq_len, hidden] =
+        # [batch_size, query_seq_len, hidden]
 
-       
+        residual = x # [batch_size, query_seq_len, hidden]
+        x = self.corss_attention(x, encoder_hidden_states, key_padding_mask) # [batch_size, query_seq_len, hidden]
+        x = self.cross_att_layer_norm(x + residual)
+        # [batch_size, query_seq_len, hidden] +
+        # [batch_size, query_seq_len, hidden] =
+        # [batch_size, query_seq_len, hidden]
+
+        residual = x # [batch_size, query_seq_len, hidden]
+        x = self.fcn(x)
+        # [batch_size, query_seq_len, hidden] ->
+        # [batch_size, query_seq_len, fcn_hidden] ->
+        # [batch_size, query_seq_len, hidden]
+
+        x = self.dropout(x) # [batch_size, query_seq_len, hidden]
+        x = self.fcn_layer_norm(x + residual)
+        # [batch_size, query_seq_len, hidden] +
+        # [batch_size, query_seq_len, hidden] =
+        # [batch_size, query_seq_len, hidden]
 
         ##YOUR CODE ENDS HERE##
         return x

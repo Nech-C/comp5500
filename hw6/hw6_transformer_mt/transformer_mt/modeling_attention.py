@@ -90,10 +90,7 @@ class MultiHeadAttention(nn.Module):
             # YOUR CODE STARTS HERE
             key_padding_mask_bool = key_padding_mask.to(torch.bool)
             mask = key_padding_mask_bool.unsqueeze(1).repeat(1, self.num_heads, 1)
-            print(f"mask shape: {mask.shape}, mask: {mask}")
             mask = mask.reshape(bs * self.num_heads, 1, attended_seq)
-            print(f"mask shape: {mask.shape}, scores shape: {scores.shape}")
-            print(f"mask: {mask}, key_padding_mask: {key_padding_mask}")
             scores = scores.masked_fill(mask, float("-inf"))
             # YOUR CODE ENDS HERE
 
