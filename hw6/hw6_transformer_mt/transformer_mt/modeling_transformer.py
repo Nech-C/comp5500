@@ -193,8 +193,11 @@ class TransfomerEncoderDecoderModel(nn.Module):
         # of size hidden to your target vocabulary size.
         # 3. Create a dropout layer
         # YOUR CODE STARTS HERE (our implementation is about 5 lines)
-
-        
+        self.positional_emb = nn.Embedding(max_seq_len, hidden)
+        self.encoder_embeddings = nn.Embedding(src_vocab_size, hidden)
+        self.decoder_embeddings = nn.Embedding(tgt_vocab_size, hidden)
+        self.out_proj = nn.Linear(hidden, tgt_vocab_size)
+        self.dropout = nn.Dropout(dropout)
         # YOUR CODE ENDS HERE
 
         # Task 2.4 (1 point)
@@ -209,7 +212,17 @@ class TransfomerEncoderDecoderModel(nn.Module):
         # You can use for-loop of python list comprehension to create the list of layers
         #
         # YOUR CODE STARTS HERE (our implementation is 3-6 lines)
-     
+        self.encoder = nn.ModuleList(
+            [TransformerEncoderLayer(hidden,
+                                     num_heads,
+                                     fcn_hidden,
+                                     dropout) for _ in range(num_layers)])
+
+        self.decoder = nn.ModuleList(
+            [TransformerDecoderLayer(hidden,
+                                     num_heads,
+                                     fcn_hidden,
+                                     dropout) for _ in range(num_layers)])
 
         # YOUR CODE ENDS HERE
 
@@ -275,12 +288,15 @@ class TransfomerEncoderDecoderModel(nn.Module):
         # 3. Pass source embeddings through the encoder layers, name them encoder_hidden_states
         # 3a. Remember to use key_padding_mask to mask out padding tokens
         # YOUR CODE STARTS HERE
-        
-        
+        encoder_hidden_states = self.encoder_embeddings(input_ids)
+        encoder_hidden_states = self._add_positions(encoder_hidden_states)
+        encoder_hidden_states = self.dropout(encoder_hidden_states)
+        for encoder_layer in self.encoder:
+            encoder_hidden_states = encoder_layer(encoder_hidden_states, key_padding_mask)
         # YOUR CODE ENDS HERE
 
         return encoder_hidden_states
-    
+
     def _decode(self, encoder_hidden_states, decoder_input_ids, key_padding_mask):
         # TASK 2.6 (2 points)
         # 1. Get decoder embeddings using self.decoder_embeddings
@@ -290,11 +306,18 @@ class TransfomerEncoderDecoderModel(nn.Module):
         # 3a. Remember to use key_padding_mask to mask out padding tokens for the encoder inputs
         # 4. use self.out_proj to get output logits, a.k.a log-probabilies of the next translation tokens
         # YOUR CODE STARTS HERE
-       
-       
-        ## YOUR CODE ENDS HERE
+        decoder_hidden_states = self.decoder_embeddings(decoder_input_ids)
+        decoder_hidden_states = self._add_positions(decoder_hidden_states)
+        decoder_hidden_states = self.dropout(decoder_hidden_states)
+        for decoder_layer in self.decoder:
+            decoder_hidden_states = decoder_layer(decoder_hidden_states,
+                                                  encoder_hidden_states,
+                                                  key_padding_mask)
+
+        logits = self.out_proj(decoder_hidden_states)
+        # YOUR CODE ENDS HERE
         return logits
-    
+
     ##############################################################################
     # Don't worry about any of the code below this line, but feel free to take a look
     # if you are interested in generation or model saving/loading.
@@ -341,7 +364,7 @@ class TransfomerEncoderDecoderModel(nn.Module):
                 key_padding_mask=key_padding_mask,
                 max_length=max_length,
             )
-        
+
         # beam search only supports batch size 1
         beam_search_generations = []
         for i in range(input_ids.size(0)):
@@ -358,7 +381,7 @@ class TransfomerEncoderDecoderModel(nn.Module):
             )
 
             beam_search_generations.append(generated[0].detach().cpu().tolist())
-        
+
         return pad(beam_search_generations, pad_id=eos_token_id)
 
     @torch.inference_mode()
@@ -521,7 +544,7 @@ class TransfomerEncoderDecoderModel(nn.Module):
 
         state_dict = self.state_dict()
         torch.save(state_dict, os.path.join(save_path, "model.pt"))
-    
+
     @classmethod
     def from_pretrained(cls, save_path, map_location=None):
         """Load the model weights from a directory
