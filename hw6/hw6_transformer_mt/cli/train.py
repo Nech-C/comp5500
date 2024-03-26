@@ -185,7 +185,8 @@ def preprocess_function(
     # Inline question 4.1:
     # What does the loop below do? Why dos target_tokenizer has max_length=max_seq_length-1?
     # YOUR ANSWER HERE (please limit your answer to 1-2 sentences):
-    #
+    # The loop below creates training data(input ids and labels) for the decoder part by shifting the label ids by 1.
+    # We reduce the max_length by 1 because we need to make space for the eos and bos tokens.
     # END OF YOUR ANSWER
     decoder_input_ids = []
     labels = []
@@ -196,7 +197,7 @@ def preprocess_function(
     # Inline question 4.2:
     # Why do we need to shift the target text by one token?
     # YOUR ANSWER HERE (please limit your answer to one sentence):
-    #
+    # The shift is needed so that the model can learn to predict the next token at each position.
     # END OF YOUR ANSWER
     model_inputs["decoder_input_ids"] = decoder_input_ids
     model_inputs["labels"] = labels
