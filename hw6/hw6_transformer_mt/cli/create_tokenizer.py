@@ -134,8 +134,28 @@ def main():
     #
     # Above every code line leave a short comment explaining what it does.
     # YOUR CODE STARTS HERE (our implementation is 8 lines of code)
-
-    
+    target_tokenizer = Tokenizer(BPE(unk_token="[UNK]"))
+    # create a BPE tokenizer with unknown token [UNK]
+    source_tokenizer_trainer = BpeTrainer(
+        special_tokens=["[UNK]", "[PAD]", "[BOS]", "[EOS]"],
+        vocab_size=args.vocab_size)
+    # create a BPE trainer with special tokens and vocab size
+    target_tokenizer.pre_tokenizer = Whitespace()
+    # set the pre-tokenizer to Whitespace
+    target_iterator = (item["translation"][args.target_lang] for item in raw_datasets["train"])
+    # create an ierator that returns the target language sentences from the dataset
+    target_tokenizer.train_from_iterator(
+        target_iterator,
+        trainer=source_tokenizer_trainer,
+    )
+    # train the target tokenizer using the iterator and the trainer
+    target_tokenizer = transformers.PreTrainedTokenizerFast(
+        tokenizer_object=target_tokenizer,
+        bos_token="[BOS]",
+        eos_token="[EOS]",
+        pad_token="[PAD]",
+    )
+    # create a PreTrainedTokenizerFast object from the target tokenizer and set special tokens
     # YOUR CODE ENDS HERE
 
 
