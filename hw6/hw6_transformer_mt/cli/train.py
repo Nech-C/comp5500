@@ -249,7 +249,9 @@ def evaluate_model(
             # What is the diffrence between model.forward() and model.generate()?
             # Do we need to have decoder_input_ids in the .forward() call? In .generate() call?
             # YOUR ANSWER HERE (please limit your answer to 1-2 sentences):
-            #
+            # model.forward() outputs logits for predicted toekens and requires decoder_input_ids, 
+            # but model.generate() generates text based on some generation method
+            # and also keeps track of the generated tokens using decoder_input_ids.
             generated_tokens = model.generate(
                 input_ids,
                 bos_token_id=target_tokenizer.bos_token_id,
@@ -316,7 +318,7 @@ def main():
     # https://huggingface.co/docs/transformers/v4.16.2/en/main_classes/tokenizer#transformers.PreTrainedTokenizerFast
     # Our implementation is two lines.
     # YOUR CODE STARTS HERE
-   
+    
    
     # YOUR CODE ENDS HERE
 
