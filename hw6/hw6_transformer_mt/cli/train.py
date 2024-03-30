@@ -318,15 +318,25 @@ def main():
     # https://huggingface.co/docs/transformers/v4.16.2/en/main_classes/tokenizer#transformers.PreTrainedTokenizerFast
     # Our implementation is two lines.
     # YOUR CODE STARTS HERE
-    
-   
+    source_tokenizer = transformers.PreTrainedTokenizerFast.from_pretrained(src_tokenizer_path)
+    target_tokenizer = transformers.PreTrainedTokenizerFast.from_pretrained(tgt_tokenizer_path)
     # YOUR CODE ENDS HERE
 
     # Task 4.2: Create TransformerEncoderDecoder object
     # Provide all of the TransformerLM initialization arguments from args.
     # Move model to the device we use for training
     # YOUR CODE STARTS HERE
-   
+    model = TransfomerEncoderDecoderModel(
+        num_layers=args.num_layers,
+        hidden= args.hidden_size,
+        num_heads=args.num_heads,
+        fcn_hidden=args.fcn_hidden,
+        max_seq_len=args.max_seq_length,
+        src_vocab_size=len(source_tokenizer),
+        tgt_vocab_size=len(target_tokenizer),
+        dropout=args.dropout_rate
+    )
+    model.to(args.device)
 
     # YOUR CODE ENDS HERE
 
@@ -390,7 +400,7 @@ def main():
     # Our implementation is two lines, but if you write it in 10-12 lines it would be more readable.
     # (readability matters)
     # YOUR CODE STARTS HERE
-   
+    
    
     # YOUR CODE ENDS HERE
 
