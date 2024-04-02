@@ -88,12 +88,15 @@ class MultiHeadAttention(nn.Module):
             # in this case, remember to reshape them back
             # Our implementation is 3 lines
             # YOUR CODE STARTS HERE
-            key_padding_mask_bool = key_padding_mask.to(torch.bool)
-            mask = key_padding_mask_bool.unsqueeze(1).repeat(1, attending_seq, 1)
-            mask = mask.view(bs, attending_seq, attended_seq)
-            mask = mask.unsqueeze(1).repeat(1, self.num_heads, 1, 1)
-            mask = mask.view(bs * self.num_heads, attending_seq, attended_seq)
-            scores = scores.masked_fill(mask, float("-inf"))
+            # Task 1.2: Handle Padding
+            # Reshape the key_padding_mask to match the dimensions of the scores tensor.
+            # The original key_padding_mask is of shape [batch_size, attended_seq], and we need to 
+            # expand it to [batch_size, num_heads, attending_seq, attended_seq] for element-wise 
+            # operation with scores.
+            key_padding_mask = key_padding_mask.unsqueeze(1).unsqueeze(2)  # Now [batch_size, 1, 1, attended_seq]
+            key_padding_mask = key_padding_mask.expand(bs, self.num_heads, attending_seq, attended_seq)  # Expand to [batch_size, num_heads, attending_seq, attended_seq]
+            key_padding_mask = key_padding_mask.reshape(bs * self.num_heads, attending_seq, attended_seq)
+            scores.masked_fill_(key_padding_mask.bool(), float('-inf'))
             # YOUR CODE ENDS HERE
 
         assert scores.size() == (bs * self.num_heads, attending_seq, attended_seq),\
