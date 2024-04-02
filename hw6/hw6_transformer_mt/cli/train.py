@@ -458,15 +458,6 @@ def main():
     # iterate over epochs
     for epoch in range(args.num_train_epochs):
         model.train()  # make sure that model is in training mode, e.g. dropout is enabled
-        evaluate_model(
-                    model=model,
-                    dataloader=eval_dataloader,
-                    target_tokenizer=target_tokenizer,
-                    device=args.device,
-                    max_seq_length=args.max_seq_length,
-                    generation_type=args.generation_type,
-                    beam_size=args.beam_size,
-                )
         # iterate over batches
         for batch in train_dataloader:
             input_ids = batch["input_ids"].to(args.device)
