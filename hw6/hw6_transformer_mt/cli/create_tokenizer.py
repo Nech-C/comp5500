@@ -156,6 +156,10 @@ def main():
         pad_token="[PAD]",
     )
     # create a PreTrainedTokenizerFast object from the target tokenizer and set special tokens
+    logger.info(f"Saving target to {args.save_dir}/{args.target_lang}_tokenizer")
+    # log the saving of the target tokenizer
+    target_tokenizer.save_pretrained(os.path.join(args.save_dir, f"{args.target_lang}_tokenizer"))
+    # save the target tokenizer to the save_dir
     # YOUR CODE ENDS HERE
 
 

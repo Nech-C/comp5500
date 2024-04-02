@@ -8,4 +8,5 @@ setup(
     name="transformer_mt",
     version="1.0",
     install_requires=install_requires,
+    packages=["transformer_mt"],
 )
