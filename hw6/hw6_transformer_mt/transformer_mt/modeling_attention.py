@@ -65,7 +65,6 @@ class MultiHeadAttention(nn.Module):
         ## YOUR CODE STARTS HERE## ~ 2 lines code
         k, v = (self.k(q), self.v(q)) if kv is None else (self.k(kv), self.v(kv))
         q = self.q(q)
-
         # YOUR CODE ENDS HERE
 
         bs, attending_seq, _ = q.shape
@@ -87,15 +86,20 @@ class MultiHeadAttention(nn.Module):
             # You might need to reshape the scores to [batch_size, seq_len, seq_len]
             # in this case, remember to reshape them back
             # Our implementation is 3 lines
-            # YOUR CODE STARTS HERE
             # Task 1.2: Handle Padding
             # Reshape the key_padding_mask to match the dimensions of the scores tensor.
             # The original key_padding_mask is of shape [batch_size, attended_seq], and we need to 
             # expand it to [batch_size, num_heads, attending_seq, attended_seq] for element-wise 
             # operation with scores.
-            key_padding_mask = key_padding_mask.unsqueeze(1).unsqueeze(2)  # Now [batch_size, 1, 1, attended_seq]
-            key_padding_mask = key_padding_mask.expand(bs, self.num_heads, attending_seq, attended_seq)  # Expand to [batch_size, num_heads, attending_seq, attended_seq]
-            key_padding_mask = key_padding_mask.reshape(bs * self.num_heads, attending_seq, attended_seq)
+            # YOUR CODE STARTS HERE
+            key_padding_mask = key_padding_mask.unsqueeze(1).unsqueeze(2)
+            # [batch_size, 1, 1, attended_seq]
+            key_padding_mask = key_padding_mask.expand(bs, self.num_heads,
+                                                       attending_seq, attended_seq)
+            # [batch_size, num_heads, attending_seq, attended_seq]
+
+            key_padding_mask = key_padding_mask.reshape(bs * self.num_heads,
+                                                        attending_seq, attended_seq)
             scores.masked_fill_(key_padding_mask.bool(), float('-inf'))
             # YOUR CODE ENDS HERE
 
@@ -111,9 +115,9 @@ class MultiHeadAttention(nn.Module):
 
         # [b * heads, s, h / heads] -> [b * heads, h / heads, s] -> [b, h, s] -> [b, s, h]
         att = att.transpose(1, 2).reshape(bs, -1, attending_seq).transpose(1, 2).contiguous()
-    
+
         att = self.mix(att)
-        
+
         if return_attention:
             return att, probs
 
